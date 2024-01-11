@@ -36,8 +36,6 @@ pip install face_recognition opencv-python playsound gtts pyautogui
 
 <h4>bash</h4>
 python security_system.py
-
-
 5. Press 'q' to exit the video feed window and terminate the script.
 
 <h1>Note</h1>
