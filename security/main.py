@@ -82,7 +82,7 @@ while True:
             cv2.imwrite(screenshot_path, frame)
             
             # Send email with screenshot
-            send_mail("sanjayskpy1@gmail.com", "vfjl xayh oyad hpqy", "sanjayskpy7@gmail.com", "Test Subject", "Test Body", ["screenshot.png"])
+            send_mail("sanjayskpy1@gmail.com", "vfjl xayh oyad hpqy", "sanjayskpy7@gmail.com", "EMARGENCY ALERT...", "Unknown Person Spotted...", ["screenshot.png"])
             print("mail sended successfully...")
             
             #play Sound
