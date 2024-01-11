@@ -16,6 +16,13 @@ def capture_screenshot():
     screenshot.save("screenshot.png")
     return "screenshot.png"
 
+def play_sound(file_path):
+    try:
+        # Play the sound file
+        playsound(file_path)
+    except Exception as e:
+        print(f"Error playing sound: {e}")
+
 def send_mail(sender_email, app_password, receiver_email, subject, body, attachments=None):
     # Create the MIME objects
     message = MIMEMultipart()
@@ -76,8 +83,12 @@ while True:
             
             # Send email with screenshot
             send_mail("sanjayskpy1@gmail.com", "vfjl xayh oyad hpqy", "sanjayskpy7@gmail.com", "Test Subject", "Test Body", ["screenshot.png"])
-            
             print("mail sended successfully...")
+            
+            #play Sound
+            sound_file_path = "security\security alarm.mp3"  # Replace with the path to your sound file
+            play_sound(sound_file_path)
+            
             # Wait for a while before capturing the next screenshot
             time.sleep(0)
 
