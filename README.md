@@ -26,7 +26,8 @@ Required Python libraries: face_recognition, cv2, playsound, gtts, smtplib, pyau
 1. Install the required libraries:
 
 <h4>bash</h4>
-pip install face_recognition opencv-python playsound gtts pyautogui
+<img width="513" alt="Screenshot 2024-01-11 200337" src="https://github.com/sk-sanju/ai-security-system.io/assets/133774180/f92e374e-f6b0-45e8-b62c-91354cad8763">
+
 
 2. Set up a Gmail account and enable "Less secure app access" to allow the script to send emails.
 
@@ -35,7 +36,8 @@ pip install face_recognition opencv-python playsound gtts pyautogui
 4. Run the script:
 
 <h4>bash</h4>
-python main.py
+<img width="114" alt="Screenshot 2024-01-11 200402" src="https://github.com/sk-sanju/ai-security-system.io/assets/133774180/29463ab1-7df5-45fa-9eee-0cb03a2dd5a8">
+
 
 5. Press 'q' to exit the video feed window and terminate the script.
 
