@@ -1,4 +1,4 @@
-<h1>Face Recognition and Security System</h1>
+<h1>AI Security System</h1>
 <p>This Python script implements a basic face recognition and security system using the face_recognition, cv2 (OpenCV), playsound, gtts (Google Text-to-Speech), and smtplib libraries. The system captures video frames from the webcam, detects faces, and compares them with known faces to determine if an unknown person is present.</p>
 
 <h1>Features</h1>
