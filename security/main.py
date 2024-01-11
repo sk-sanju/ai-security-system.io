@@ -45,11 +45,11 @@ def send_mail(sender_email, app_password, receiver_email, subject, body, attachm
         server.login(sender_email, app_password)
         server.sendmail(sender_email, receiver_email, message.as_string())
 
-# Example usage
+# usage
 known_face_encodings = []
 known_face_names = []
 
-# Example: Load a sample picture and learn how to recognize it
+# Load a sample picture and learn how to recognize it
 sanju_image = face_recognition.load_image_file("security\sanju.jpg")
 sanju_face_encoding = face_recognition.face_encodings(sanju_image)[0]
 known_face_encodings.append(sanju_face_encoding)
