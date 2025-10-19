@@ -1,120 +1,101 @@
-import face_recognition
 import cv2
+import os
+import time
+from datetime import datetime
+from deepface import DeepFace
 from playsound import playsound
-from gtts import gTTS
+import pygame
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-import os
-import pyautogui
-import time
 
-# Function to capture a screenshot
-def capture_screenshot():
-    screenshot = pyautogui.screenshot()
-    screenshot.save("screenshot.png")
-    return "screenshot.png"
+# ------------------- Configuration -------------------
+# Base directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def play_sound(file_path):
+# File paths
+KNOWN_FACE_PATH = os.path.join(BASE_DIR, "sanju.jpg")
+ALARM_SOUND = os.path.join(BASE_DIR, "security_alarm.mp3")
+SENDER_EMAIL = "sanjayskpy1@gmail.com"
+APP_PASSWORD = "yylf aixp zfdv qjyk"
+RECEIVER_EMAIL = "sanjayskpy7@gmail.com"
+ALERT_SUBJECT = "EMERGENCY ALERT!"
+ALERT_BODY = "Unknown Person Detected by AI Security System"
+ALERT_COOLDOWN = 10  # seconds between alerts
+
+# ------------------- Functions -------------------
+def capture_photo():
+    """Capture a photo from the webcam and return the file path."""
+    cam = cv2.VideoCapture(0)
+    ret, frame = cam.read()
+    if not ret:
+        print("Error: Could not access camera.")
+        cam.release()
+        return None
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    photo_path = f"captured_{timestamp}.jpg"
+    cv2.imwrite(photo_path, frame)
+    cam.release()
+    return photo_path
+
+def play_alarm():
     try:
-        # Play the sound file
-        playsound(file_path)
+        pygame.mixer.init()
+        pygame.mixer.music.load(ALARM_SOUND)
+        pygame.mixer.music.play()
+        print("🔊 Alarm sound playing...")
     except Exception as e:
-        print(f"Error playing sound: {e}")
+        print(f"Error playing alarm sound: {e}")
 
-def send_mail(sender_email, app_password, receiver_email, subject, body, attachments=None):
-    # Create the MIME objects
-    message = MIMEMultipart()
-    message["From"] = sender_email
-    message["To"] = receiver_email
-    message["Subject"] = subject
-    message.attach(MIMEText(body, "plain"))
+def send_alert_email(image_path):
+    """Send an email alert with the captured image."""
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = SENDER_EMAIL
+        msg["To"] = RECEIVER_EMAIL
+        msg["Subject"] = ALERT_SUBJECT
+        msg.attach(MIMEText(ALERT_BODY, "plain"))
 
-    # Attach additional files (e.g., screenshots)
-    if attachments:
-        for attachment in attachments:
-            with open(attachment, "rb") as attachment_file:
-                image_mime = MIMEImage(attachment_file.read(), _subtype="png")
-                image_mime.add_header("Content-Disposition", "attachment", filename=attachment)
-                message.attach(image_mime)
+        if image_path and os.path.exists(image_path):
+            with open(image_path, "rb") as f:
+                img_data = f.read()
+            img = MIMEImage(img_data, _subtype="jpeg")
+            img.add_header("Content-Disposition", "attachment", filename=os.path.basename(image_path))
+            msg.attach(img)
 
-    # Connect to the SMTP server using the app password
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(sender_email, app_password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, APP_PASSWORD)
+            server.sendmail(SENDER_EMAIL, RECEIVER_EMAIL, msg.as_string())
+        print("✅ Alert email sent successfully.")
+    except Exception as e:
+        print(f"❌ Error sending email: {e}")
 
-# usage
-known_face_encodings = []
-known_face_names = []
-
-# Load a sample picture and learn how to recognize it
-sanju_image = face_recognition.load_image_file("security\sanju.jpg")
-sanju_face_encoding = face_recognition.face_encodings(sanju_image)[0]
-known_face_encodings.append(sanju_face_encoding)
-known_face_names.append("SANJU")
-
-# You can add more known faces similarly
-
-# Get a reference to the webcam (adjust the index if you have multiple cameras)
-video_capture = cv2.VideoCapture(0)
+# ------------------- Main Logic -------------------
+print("🔒 AI Security System Started...")
+last_alert_time = 0
+known_image_path = KNOWN_FACE_PATH
 
 while True:
-    # Capture frame-by-frame
-    ret, frame = video_capture.read()
+    photo_path = capture_photo()
+    if not photo_path:
+        continue
 
-    # Find all face locations and face encodings in the current frame
-    face_locations = face_recognition.face_locations(frame)
-    face_encodings = face_recognition.face_encodings(frame, face_locations)
+    try:
+        # Compare captured image with known face
+        result = DeepFace.verify(img1_path=photo_path, img2_path=known_image_path, model_name="VGG-Face", enforce_detection=False)
+        verified = result.get("verified", False)
+    except Exception as e:
+        print(f"Error in face verification: {e}")
+        verified = False
 
-    face_names = []
+    if not verified and (time.time() - last_alert_time > ALERT_COOLDOWN):
+        print("⚠️ Unknown person detected!")
+        send_alert_email(photo_path)
+        play_alarm()
+        last_alert_time = time.time()
+    else:
+        print("✅ Known person detected (SANJU).")
 
-    for face_encoding in face_encodings:
-        # Check if the face matches any known face
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-        name = "Unknown"
-        if not any(matches):
-            print("Unknown person detected!")
-            
-            # Capture a screenshot
-            screenshot_path = capture_screenshot()
-            cv2.imwrite(screenshot_path, frame)
-            
-            # Send email with screenshot
-            send_mail("sanjayskpy1@gmail.com", "vfjl xayh oyad hpqy", "sanjayskpy7@gmail.com", "EMARGENCY ALERT...", "Unknown Person Spotted...", ["screenshot.png"])
-            print("mail sended successfully...")
-            
-            #play Sound
-            sound_file_path = "security\security alarm.mp3"  # Replace with the path to your sound file
-            play_sound(sound_file_path)
-            
-            # Wait for a while before capturing the next screenshot
-            time.sleep(0)
-
-        # If a match was found, use the first one
-        if True in matches:
-            first_match_index = matches.index(True)
-            name = known_face_names[first_match_index]
-
-        face_names.append(name)
-
-    # Display the results
-    for (top, right, bottom, left), name in zip(face_locations, face_names):
-        # Draw a rectangle around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (247, 19, 2),3)
-
-        # Draw a label with a name below the face
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.6, (255, 255, 255), 1)
-
-    # Display the resulting image
-    cv2.imshow('Video', frame)
-
-    # Break the loop if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Release the webcam and close all windows
-video_capture.release()
-cv2.destroyAllWindows()
+    time.sleep(5)  # Check every 5 seconds
